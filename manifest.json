@@ -1,15 +1,21 @@
 {
-    "name": "Test Extension",
-    "description": "Description of Extension",
+    "name": "Rethink",
+    "description": "Fact-driven news aggregation: All the essential details in one place, free from the bias and clutter.",
     "version": "1.0",
     "manifest_version": 3,
     "action": {
         "default_popup": "hello.html"
     },
+    "icons": {
+        "48": "./resources/RethinkLogo.png"
+    },
     "content_scripts": [
         {
-          "matches": ["https://*.example.com/*"],
-          "js": ["content.js"]
+          "js": ["content.js"],
+          
+          "matches": [
+            "https://www.cnn.com/*"
+          ]
         }
     ]
 }
