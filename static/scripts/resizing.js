@@ -2,7 +2,7 @@ interact('.resize-drag')
   .resizable({
     // resize from all edges and corners
     edges: { left: true, right: true, bottom: true, top: true },
-
+    margin: 5,
     listeners: {
       move (event) {
         var target = event.target
@@ -21,13 +21,12 @@ interact('.resize-drag')
 
         target.setAttribute('data-x', x)
         target.setAttribute('data-y', y)
-        target.textContent = Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height)
       }
     },
     modifiers: [
       // keep the edges inside the parent
       interact.modifiers.restrictEdges({
-        outer: 'parent'
+        outer: 'window'
       }),
 
       // minimum size
@@ -43,8 +42,25 @@ interact('.resize-drag')
     inertia: true,
     modifiers: [
       interact.modifiers.restrictRect({
-        restriction: 'parent',
+        restriction: 'window',
         endOnly: true
       })
     ]
   })
+
+  function dragMoveListener (event) {
+    var target = event.target
+    // keep the dragged position in the data-x/data-y attributes
+    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+  
+    // translate the element
+    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+  
+    // update the posiion attributes
+    target.setAttribute('data-x', x)
+    target.setAttribute('data-y', y)
+  }
+  
+  // this function is used later in the resizing and gesture demos
+  window.dragMoveListener = dragMoveListener
