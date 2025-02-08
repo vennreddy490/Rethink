@@ -1,0 +1,17 @@
+
+{
+    "name": "Test Extension",
+    "description": "Description of Extension",
+    "version": "1.0",
+    "manifest_version": 3,
+    "action": {
+        "default_popup": "hello.html"
+    },
+    "content_scripts": [
+        {
+          "matches": ["https://*.example.com/*"],
+          "js": ["content.js"]
+        }
+    ]
+}
+
