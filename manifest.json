@@ -6,8 +6,18 @@
     "action": {
         "default_popup": "hello.html"
     },
+    "permissions": [
+        "tabs"
+    ],
+    "host_permissions" [ 
+        "http://localhost:5000/*"
+    ],
     "icons": {
         "48": "./resources/RethinkLogo.png"
+    },
+
+    "background": {
+        "service_worker": "background.js"
     },
     "content_scripts": [
         {
