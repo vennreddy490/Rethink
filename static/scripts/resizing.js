@@ -40,6 +40,10 @@ interact('.resize-drag')
   .draggable({
     listeners: { move: window.dragMoveListener },
     inertia: true,
+    ignoreFrom: '.ignore-drag',
+    cursorChecker () {
+      return 'move'
+    },
     modifiers: [
       interact.modifiers.restrictRect({
         restriction: 'window',
