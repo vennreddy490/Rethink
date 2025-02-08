@@ -3,6 +3,7 @@ interact('.resize-drag')
     // resize from all edges and corners
     edges: { left: true, right: true, bottom: true, top: true },
     margin: 5,
+    ignoreFrom: '.ignore-resize',
     listeners: {
       move (event) {
         var target = event.target
