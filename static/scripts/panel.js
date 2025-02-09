@@ -1,3 +1,5 @@
+console.log('FJDSKLF:JDSLKFJDS:LKFJDS:LKFJDS:LKFJDS:LKJF:LDSKJ')
+
 interact('.resize-drag')
   .resizable({
     // resize from all edges and corners

@@ -4,11 +4,12 @@
 	border-radius: 4px;
 	background-color: #FFF6F8;
 	font-family: sans-serif;
-	position: absolute;
+	position: fixed;
 	touch-action: none;
 	overflow: clip;
 	font-family: "Inter", serif;
 	font-size: 13px;
+	z-index: 9999;
   
 	/* This makes things *much* easier */
 	box-sizing: border-box;
