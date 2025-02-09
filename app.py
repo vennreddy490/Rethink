@@ -18,9 +18,9 @@ def build_app():
 	updated_news_api.display_news(articles)
 
 	summary = "CNN has highlighted prior safety concerns, reporting that in the three years leading up to the crash, pilots had reported near-misses with helicopters at Reagan National Airport. (cnn.com) Reuters provided detailed information on the investigation's progress, including the identification of the soldiers involved and preliminary data suggesting that the helicopter may have been flying above its designated altitude at the time of the collision. (reuters.com) CBS News has focused on the technical aspects of the investigation, reporting that both the plane's black boxes have been recovered and are being analyzed to determine the cause of the crash. (cbs.com)"
-	sources = [{"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}, {"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
-	summary_sources = [{"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
-	main_source = {"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}
+	sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}, {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
+	summary_sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
+	main_source = {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}
 	media_diet = {}
 
 	return render_template("./testingbase.html", summary=summary, summary_sources=summary_sources, sources=sources, main_source=main_source, media_diet=media_diet)
@@ -29,9 +29,9 @@ def build_app():
 def home():
 
 	summary = "CNN has highlighted prior safety concerns, reporting that in the three years leading up to the crash, pilots had reported near-misses with helicopters at Reagan National Airport. (cnn.com) Reuters provided detailed information on the investigation's progress, including the identification of the soldiers involved and preliminary data suggesting that the helicopter may have been flying above its designated altitude at the time of the collision. (reuters.com) CBS News has focused on the technical aspects of the investigation, reporting that both the plane's black boxes have been recovered and are being analyzed to determine the cause of the crash. (cbs.com)"
-	sources = [{"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}, {"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
-	summary_sources = [{"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
-	main_source = {"name": "CNN", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}
+	sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}, {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
+	summary_sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
+	main_source = {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}
 	media_diet = {}
-
+	
 	return render_template("./testingbase.html", summary=summary, summary_sources=summary_sources, sources=sources, main_source=main_source, media_diet=media_diet)
