@@ -56,14 +56,14 @@ if (!document.getElementById("myExtensionButton")) {
 
         document.querySelector('.close-button').addEventListener("click", () => {
           panel = document.querySelector('.resize-drag')
-          panel.top = '100px'
-          panel.right = '50px'
+          // panel.top = '100px'
+          // panel.right = '50px'
           panel.height = '500px'
           panel.width = '550px'
           panel.style.visibility = 'hidden'
         });
 
-        console.log(window.closePanel)
+        // buildChart()
 
         console.log("Server Response:", data);
         
@@ -190,4 +190,16 @@ function closePanel() {
   // // panel.right = '50px'
   // panel.height = '500px'
   // panel.width = '550px'
+}
+
+function buildCharts() {
+  const chart_canvas = document.getElementById('biasChart')
+  const chartData = JSON.parse(chart_canvas.getAttribute('chartData'))
+
+  biasChart = new Chart(chart_canvas, {
+    type: 'donut',
+    data: chartData,
+    options: {}
+  })
+  
 }
