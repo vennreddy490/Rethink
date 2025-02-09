@@ -1,10 +1,9 @@
-from flask import Flask, render_template, redirect, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from backend import updated_news_api, debrief, news_api
 import os
 from flask_cors import CORS
 import re
 import csv
-import atexit
 import datetime
 import json
 import pandas as pd
@@ -81,12 +80,10 @@ factuality_weights = {
     "no factual reporting rating": 0
 }
 
-
 @app.route("/app", methods=["POST"])
 def build_app():
     data = request.get_json()
-    main_url = data.get("main_url", "")  # Extract URL from JSON
-
+    main_url = data.get("main_url", "")
     print(f"Received URL: {main_url}")
 
     # TASK 1: News API Call
@@ -95,91 +92,124 @@ def build_app():
     articles = news_api.get_news(news_api_key, title)
     processed_articles = news_api.process_articles(articles, "./media_bias.json")
     print("Processed articles (sources and meta info):")
-    if not processed_articles:
-        print("PROCESS ARTICLES IS EMPTY")
     for article in processed_articles:
         print(str(article))
 
-    # TASK 2: AI SUMMARY (insert code here)
+    # TASK 2: AI SUMMARY (Bulk Comparison for Top 3 Articles)
     print("TASK 2: AI SUMMARY")
+    from backend import fetch_html, debrief  # Ensure both modules are imported
+
+    # 1. Fetch the main article's text.
+    main_text_dict = fetch_html.extract_article_text([main_url])
+    main_article_text = main_text_dict.get(main_url, "")
+    if not main_article_text:
+        print(f"Failed to fetch main article text from {main_url}")
+    else:
+        print("Successfully fetched main article text.")
+
+    # 2. Select the top 3 articles from processed_articles.
+    top_articles = processed_articles[:3] if len(processed_articles) >= 3 else processed_articles
+
+    # 3. Fetch texts for these top articles.
+    top_article_urls = [article["article_url"] for article in top_articles]
+    top_articles_text = fetch_html.extract_article_text(top_article_urls)
+
+    # 4. Build the dictionary for analysis.
+    articles_for_analysis = {"Main": main_article_text}
+    for article in top_articles:
+        source_name = article["name"]
+        url = article["article_url"]
+        text = top_articles_text.get(url, "Article text not available.")
+        articles_for_analysis[source_name] = text
+
+    # 5. Prepare the list of sources to compare (excluding "Main").
+    compare_sources = [key for key in articles_for_analysis if key != "Main"]
+
+    # 6. Call the bulk analysis function.
+    additional_info_report = debrief.analyze_articles(articles_for_analysis, "Main", compare_sources)
+
+    # Derive a summary string from the additional info.
+    if additional_info_report:
+        summary_str = " ".join([f"{source}: {info}" for source, info in additional_info_report.items()])
+    else:
+        summary_str = "No additional details found."
 
     # TASK 3: MEDIA BIAS and MEDIA DIET
     print("TASK 3: MEDIA BIAS")
-    diet_tuples = get_diet(main_url)
-    # (You can use diet_tuples as needed.)
+    # get_diet returns a tuple of four values.
+    bias_counts_sum, factuality_counts_sum, credibility_counts_sum, score_dict = get_diet(main_url)
+    media_diet = {
+        "bias_counts": bias_counts_sum,
+        "factuality_counts": factuality_counts_sum,
+        "credibility_counts": credibility_counts_sum,
+        "score_dict": score_dict
+    }
 
-    return jsonify({"message": "URL received", "main_url": main_url})
+    # Build the "sources" list (all processed articles) using the provided schema.
+    sources = []
+    for article in processed_articles:
+        sources.append({
+            "name": article.get("name", "Unknown"),
+            "article_url": article.get("article_url", "URL"),
+            "date": article.get("date", "Unknown"),
+            "factuality": article.get("factuality", "Unknown"),
+            "bias": article.get("bias", "Unknown"),
+            "credibility": article.get("credibility", "Unknown")
+        })
 
+    # "summary_sources" will be the top_articles (the ones used for the AI summary).
+    summary_sources = []
+    for article in top_articles:
+        summary_sources.append({
+            "name": article.get("name", "Unknown"),
+            "article_url": article.get("article_url", "URL"),
+            "date": article.get("date", "Unknown"),
+            "factuality": article.get("factuality", "Unknown"),
+            "bias": article.get("bias", "Unknown"),
+            "credibility": article.get("credibility", "Unknown")
+        })
 
-@app.route("/")
-def home():
-    summary = (
-        "CNN has highlighted prior safety concerns, reporting that in the three years leading up to the crash, "
-        "pilots had reported near-misses with helicopters at Reagan National Airport. (cnn.com) Reuters provided "
-        "detailed information on the investigation's progress, including the identification of the soldiers "
-        "involved and preliminary data suggesting that the helicopter may have been flying above its designated "
-        "altitude at the time of the collision. (reuters.com) CBS News has focused on the technical aspects of "
-        "the investigation, reporting that both the plane's black boxes have been recovered and are being analyzed "
-        "to determine the cause of the crash. (cbs.com)"
-    )
-    sources = [
-        {"name": "CNN", "image_url": "URL", "article_url": "URL", "date": "2/7/2025", "factuality": "High", "bias": "Center Left", "credibility": "High"},
-        {"name": "CNN", "image_url": "URL", "article_url": "URL", "date": "2/7/2025", "factuality": "High", "bias": "Center Left", "credibility": "High"}
-    ]
-    summary_sources = [
-        {"name": "CNN", "image_url": "URL", "article_url": "URL", "date": "2/7/2025", "factuality": "High", "bias": "Center Left", "credibility": "High"}
-    ]
-    main_source = {"name": "CNN", "image_url": "URL", "article_url": "URL", "date": "2/7/2025", "factuality": "High", "bias": "Center Left", "credibility": "High"}
-    media_diet = {}
+    # Determine "main_source": if the main_url exists in processed_articles, use that; otherwise, use defaults.
+    main_source_dict = None
+    for article in processed_articles:
+        if article.get("article_url") == main_url:
+            main_source_dict = {
+                "name": article.get("name", "Unknown"),
+                "article_url": article.get("article_url", "URL"),
+                "date": article.get("date", "Unknown"),
+                "factuality": article.get("factuality", "Unknown"),
+                "bias": article.get("bias", "Unknown"),
+                "credibility": article.get("credibility", "Unknown")
+            }
+            break
+    if not main_source_dict:
+        main_source_dict = {
+            "name": "Main Source",
+            "article_url": main_url,
+            "date": "Unknown",
+            "factuality": "Unknown",
+            "bias": "Unknown",
+            "credibility": "Unknown"
+        }
+
+    # "summary" is derived from the AI summary results.
+    summary_final = summary_str
+
+    print("\n\n\n\n")
+    print("===========================")
+    print(f"summary: {summary_final}")
+    print(f"summary_sources: {summary_sources}")
+    print(f"sources: {sources}")
+    print(f"main_source: {main_source_dict}")
+    print(f"media_diet: {media_diet}")
+
 
     return render_template("./testingbase.html",
-                           summary=summary,
+                           summary=summary_final,
                            summary_sources=summary_sources,
                            sources=sources,
-                           main_source=main_source,
+                           main_source=main_source_dict,
                            media_diet=media_diet)
-
-
-# Legacy testing routes
-
-@app.route('/ping', methods=['GET'])
-def ping():
-    return jsonify({"message": "Hello from Flask!, SUCCESSFULLY PINGED"})
-
-
-@app.route('/post-test', methods=['POST'])
-def post_test():
-    data = request.get_json()
-    try:
-        num_value = int(data.get("num", 0))
-        result = num_value + 5
-        return jsonify({"message": f"Received num: {num_value}, After adding 5: {result}"})
-    except ValueError:
-        return jsonify({"error": "Invalid number format"}), 400
-
-
-@app.route('/post-string', methods=['POST'])
-def post_string():
-    data = request.get_json()
-    received_text = data.get("text", "No text provided")
-    reversed_text = received_text[::-1]
-    return jsonify({"original_text": received_text, "reversed_text": reversed_text})
-
-
-@app.route('/cnn-loaded', methods=['POST'])
-def cnn_loaded():
-    data = request.get_json()
-    received_site = data.get("site", "No site provided")
-    modified_site = received_site.upper()
-    root_site = get_root_url(received_site)
-    print(f"✅ Page Loaded - Received URL: {received_site} | Modified: {modified_site} | Root: {root_site}")
-    return jsonify({
-        "original_site": received_site,
-        "modified_site": modified_site,
-        "root_site": root_site,
-        "message": "Page load detected successfully!"
-    })
-
 
 # Helper Functions
 
@@ -193,7 +223,6 @@ def calculate_rating(counts, weights):
         return 0
     weighted_sum = sum(weights.get(category, 0) * count for category, count in counts.items())
     return weighted_sum / total_occurrences
-
 
 def write_all_counts_to_csv(bias_counts, factuality_counts, credibility_counts,
                             bias_score, factuality_score, credibility_score):
@@ -215,7 +244,7 @@ def write_all_counts_to_csv(bias_counts, factuality_counts, credibility_counts,
     print(f"📏 Expected Columns: {len(header)}, | Row Columns: {len(row)}")
     if len(row) != len(header):
         print(f"⚠️ MISMATCH: Row has {len(row)} columns, expected {len(header)}.")
-        return  # Do not write mismatched rows
+        return
     
     file_exists = os.path.isfile('./all_counts.csv')
     with open('./all_counts.csv', 'a', newline='') as csvfile:
@@ -226,14 +255,12 @@ def write_all_counts_to_csv(bias_counts, factuality_counts, credibility_counts,
     
     print("✅ Data successfully written to CSV. Scores will be handled separately in `get_diet()`.")
 
-
 def convert_url(url):
     """
     Convert a URL starting with 'http://' or 'https://' to one that starts with 'www.'.
     """
     pattern = r'^https?://(?:www\.)?(.*)'
     return re.sub(pattern, r'www.\1', url)
-
 
 def get_root_url(url):
     """
@@ -243,17 +270,15 @@ def get_root_url(url):
     match = re.match(r'^(https?://[^/]+)', url)
     return match.group(1) if match else url
 
-
 def get_diet(url):
     """
     Updates counts based on the media_bias.json file,
     writes the updated counts to CSV, then reads and aggregates the CSV.
-    If the CSV does not exist or is empty, it handles that gracefully.
     Returns a tuple with aggregated bias, factuality, and credibility counts plus a score dictionary.
     """
     global bias_counts, factuality_counts, credibility_counts
 
-    # Reset counts without changing key order
+    # Reset counts
     for key in bias_counts:
         bias_counts[key] = 0
     for key in factuality_counts:
@@ -261,12 +286,10 @@ def get_diet(url):
     for key in credibility_counts:
         credibility_counts[key] = 0
 
-    # Clean and extract root URL
     root_url = get_root_url(url)
-    root_url = convert_url(root_url)
-    root_url = root_url + "/"
+    root_url = convert_url(root_url) + "/"
 
-    # Load media_bias.json for matching
+    # Load media_bias.json for matching.
     current_dir = os.path.dirname(os.path.abspath(__file__))
     json_path = os.path.join(current_dir, 'backend/media_bias.json')
     try:
@@ -274,9 +297,7 @@ def get_diet(url):
             sources = json.load(file)
     except Exception as e:
         print("Error reading JSON:", e)
-        response = jsonify({'error': f'Error reading JSON: {str(e)}'})
-        response.status_code = 500
-        return response
+        return {}, {}, {}, {}
 
     matching_source = next((source for source in sources if source.get('url') == root_url), None)
     if matching_source:
@@ -313,10 +334,9 @@ def get_diet(url):
         print("CSV is empty. Returning current counts.")
         return bias_counts, factuality_counts, credibility_counts, {}
 
-    # Now tally the score columns vertically and compute the average for each
-    bias_score_avg = (df["Bias Score"].mean())
-    factuality_score_avg = (df["Factuality Score"].mean())
-    credibility_score_avg = (df["Credibility Score"].mean())
+    bias_score_avg = df["Bias Score"].mean()
+    factuality_score_avg = df["Factuality Score"].mean()
+    credibility_score_avg = df["Credibility Score"].mean()
 
     score_dict = {
         "Bias Score": bias_score_avg,
@@ -324,7 +344,6 @@ def get_diet(url):
         "Credibility Score": credibility_score_avg
     }
 
-    # For debugging, also aggregate the raw counts for each category
     bias_columns = list(bias_weights.keys())
     factuality_columns = list(factuality_weights.keys())
     credibility_columns = list(credibility_weights.keys())
@@ -339,7 +358,6 @@ def get_diet(url):
     print("Score Dictionary:", score_dict)
 
     return bias_counts_sum, factuality_counts_sum, credibility_counts_sum, score_dict
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

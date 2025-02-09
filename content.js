@@ -37,11 +37,12 @@ if (!document.getElementById("myExtensionButton")) {
 
 
     // INSERT ALL THE JAVASCRIPT THAT YOU WANT TO RUN WHEN THE PAGE LOADS
-    fetch("http://127.0.0.1:5000/", {
-        method: "GET",
+    fetch("http://127.0.0.1:5000/app", {
+        method: "POST",
         headers: {
-            //"Content-Type": "application/json"
-        }
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ main_url: window.location.href }) 
     })
     .then(response => response.text())
     .then(data => {
@@ -69,19 +70,19 @@ if (!document.getElementById("myExtensionButton")) {
     })
     .catch(error => console.error("Error contacting backend:", error));
 
-    // CODE THAT POSTS URL TO FLASK /APP ROUTE:
-    fetch("http://127.0.0.1:5000/app", {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ main_url: window.location.href }) // Sends current page URL
-  })
-  .then(response => response.text())
-  .then(data => {
-      console.log("Response from Flask:", data);
-  })
-  .catch(error => console.error("Error sending URL to Flask:", error));
+  //   // CODE THAT POSTS URL TO FLASK /APP ROUTE:
+  //   fetch("http://127.0.0.1:5000/app", {
+  //     method: "POST",
+  //     headers: {
+  //         "Content-Type": "application/json"
+  //     },
+  //     body: JSON.stringify({ main_url: window.location.href }) // Sends current page URL
+  // })
+  // .then(response => response.text())
+  // .then(data => {
+  //     console.log("Response from Flask:", data);
+  // })
+  // .catch(error => console.error("Error sending URL to Flask:", error));
   
   
     // CODE THAT ADDS BUTTON TO DOM:
