@@ -25,7 +25,7 @@ if (!document.getElementById("myExtensionButton")) {
     // Button action: Open YouTube
     button.addEventListener("click", function() {
         console.log('fdjskfjdslkfjlsdk')
-        document.querySelectorAll('resize-drag').style.visibility = visible
+        document.querySelector('.resize-drag').style.visibility = 'visible'
     });
 
 
