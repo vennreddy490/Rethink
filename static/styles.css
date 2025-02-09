@@ -1,4 +1,6 @@
 .resize-drag {
+	top: 100px;
+	right: 300px;
 	height: 500px;
 	width: 550px;
 	border-radius: 4px;
@@ -77,3 +79,28 @@
 	padding: 3px 5px 3px 5px;
 	text-decoration: none;
 }
+
+::-webkit-scrollbar {
+	width: 8px !important;
+	height: 8px !important;
+  }
+  
+::-webkit-scrollbar-track {
+	width: 5px !important;
+	background: transparent !important;
+  }
+
+  ::-webkit-scrollbar-track-piece:hover {
+	background: rgba(0, 0, 0, 0.1) !important;
+  }
+  
+::-webkit-scrollbar-thumb {
+	background-color: rgba(0, 0, 0, 0.2) !important;
+	height: 50px;
+	width: 4px; 
+	border-radius: 10px !important;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(0, 0, 0, 0.5) !important;
+  }

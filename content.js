@@ -28,8 +28,11 @@ if (!document.getElementById("myExtensionButton")) {
 
     // Button action: Open YouTube
     button.addEventListener("click", function() {
-        console.log('fdjskfjdslkfjlsdk')
+      if (document.querySelector('.resize-drag').style.visibility == 'hidden') {
         document.querySelector('.resize-drag').style.visibility = 'visible'
+    } else {
+        document.querySelector('.resize-drag').style.visibility = 'hidden'
+    }
     });
 
 
@@ -50,6 +53,18 @@ if (!document.getElementById("myExtensionButton")) {
         document.body.insertAdjacentHTML('afterbegin', doc.documentElement.innerHTML)
         loadScript(chrome.runtime.getURL('static/scripts/interact.min.js'))
         jankyWindowActivation()
+
+        document.querySelector('.close-button').addEventListener("click", () => {
+          panel = document.querySelector('.resize-drag')
+          panel.top = '100px'
+          panel.right = '300px'
+          panel.height = '500px'
+          panel.width = '550px'
+          panel.style.visibility = 'hidden'
+        });
+
+        console.log(window.closePanel)
+
         console.log("Server Response:", data);
         
     })
@@ -163,4 +178,18 @@ function jankyWindowActivation() {
   
   // this function is used later in the resizing and gesture demos
   window.dragMoveListener = dragMoveListener
+}
+
+function activateCloseButton() {
+  window.closePanel = closePanel
+  document.querySelector('.close-button').onClick = closePanel
+}
+
+function closePanel() {
+  panel = document.querySelector('.resize-drag')
+  panel.style.visibility = 'hidden'
+  panel.top = '500px'
+  panel.right = '50px'
+  panel.height = '500px'
+  panel.width = '550px'
 }
