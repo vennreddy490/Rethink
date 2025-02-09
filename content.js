@@ -51,13 +51,12 @@ if (!document.getElementById("myExtensionButton")) {
         console.log("test")
         activateImages(doc)
         document.body.insertAdjacentHTML('afterbegin', doc.documentElement.innerHTML)
-        loadScript(chrome.runtime.getURL('static/scripts/interact.min.js'))
         jankyWindowActivation()
 
         document.querySelector('.close-button').addEventListener("click", () => {
           panel = document.querySelector('.resize-drag')
           panel.top = '100px'
-          panel.right = '300px'
+          panel.right = '50px'
           panel.height = '500px'
           panel.width = '550px'
           panel.style.visibility = 'hidden'
@@ -106,8 +105,8 @@ function activateImages(html) {
     })
 }
 
-function jankyWindowActivation() {
-    interact('.resize-drag')
+function jankyWindowActivation() { 
+  interact('.resize-drag')
   .resizable({
     // resize from all edges and corners
     edges: { left: true, right: true, bottom: true, top: true },
@@ -128,9 +127,6 @@ function jankyWindowActivation() {
         y += event.deltaRect.top
 
         target.style.transform = 'translate(' + x + 'px,' + y + 'px)'
-
-        target.setAttribute('data-x', x)
-        target.setAttribute('data-y', y)
       }
     },
     modifiers: [
@@ -149,7 +145,7 @@ function jankyWindowActivation() {
   })
   .draggable({
     listeners: { move: window.dragMoveListener },
-    inertia: true,
+    inertia: false,
     ignoreFrom: '.ignore-drag',
     cursorChecker () {
       return 'move'
@@ -161,24 +157,25 @@ function jankyWindowActivation() {
       })
     ]
   })
+  
+    function dragMoveListener (event) {
+      var target = event.target
+      // keep the dragged position in the data-x/data-y attributes
+      var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+      var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+    
+      // translate the element
+      target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+    
+      // update the posiion attributes
+      target.setAttribute('data-x', x)
+      target.setAttribute('data-y', y)
+    }
 
-  function dragMoveListener (event) {
-    var target = event.target
-    // keep the dragged position in the data-x/data-y attributes
-    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
-    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
-  
-    // translate the element
-    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
-  
-    // update the posiion attributes
-    target.setAttribute('data-x', x)
-    target.setAttribute('data-y', y)
-  }
-  
   // this function is used later in the resizing and gesture demos
   window.dragMoveListener = dragMoveListener
-}
+
+  }
 
 function activateCloseButton() {
   window.closePanel = closePanel
@@ -188,8 +185,8 @@ function activateCloseButton() {
 function closePanel() {
   panel = document.querySelector('.resize-drag')
   panel.style.visibility = 'hidden'
-  panel.top = '500px'
-  panel.right = '50px'
-  panel.height = '500px'
-  panel.width = '550px'
+  // panel.top = '500px'
+  // // panel.right = '50px'
+  // panel.height = '500px'
+  // panel.width = '550px'
 }

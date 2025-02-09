@@ -8,4 +8,5 @@ pip libraries:
 `pip install trafilatura`
 `pip install flask-cors`
 `pip install python-dotenv`
+`pip install pandas`
 `python -m spacy download en_core_web_sm`
