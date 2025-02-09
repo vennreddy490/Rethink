@@ -1,33 +1,132 @@
 from flask import Flask, render_template, redirect, request, jsonify
-from backend import updated_news_api, debrief
+from backend import updated_news_api, debrief, news_api
 import os
 from flask_cors import CORS
 import re
+import csv 
+import atexit
+import datetime
+import json
 from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)  # Allows requests from the extension
 
+# GLOBAL VARIABLES:
+news_api_key = os.getenv("NEWS_API_KEY")
+
+# Record the instances of vistied articles' biases 
+bias_counts = {
+    'Left': 0,
+    'Far Right': 0,
+    'Center': 0,
+    'Far Left': 0,
+    'Not Available': 0,
+    'Center Left': 0,
+    'Right': 0,
+    'Center Right': 0
+}
+
+credibility_counts = {
+    'Low': 0,
+    'High Credibility': 0,
+    'N/A': 0,
+    'Medium': 0,
+    
+}
+
+factuality_counts = {
+    'Low': 0,
+    'Mostly': 0,
+    'N/A': 0,
+    'Very High': 0,
+    'Very Low': 0,
+    'High': 0,
+    'Mixed': 0,
+    'no factual reporting rating': 0
+}
+
+# Weights for each category (use lower-case keys)
+bias_weights = {
+    "Left": -2,
+    "Far Right": 3,
+    "Center": 0,
+    "Far Left": -3,
+    "Not Available": 0,
+    "Center Left": -1,
+    "Right": 2,
+    "Center Right": 1
+}
+
+credibility_weights = {
+    "Low": -2,
+    "High Credibility": 2,
+    "N/A": 0,
+    "Medium": 1,
+    "Mixed": -1
+}
+
+factuality_weights = {
+    "Low": -1,
+    "Mostly": 1,
+    "N/A": 0,
+    "Very High": 3,
+    "Very Low": -2,
+    "High": 2,
+    "Mixed": 0,
+    "no factual reporting rating": 0
+}
 
 @app.route("/app", methods=["POST"])
 def build_app():
 
-	main_url = request.get_json()
-	title = "Trump executive order to South Africa"
-	refined_query = updated_news_api.extract_keywords(title)
-	updated_news_api.refined_query(title)
-	news_api_key = os.getenv("NEWS_API_KEY")
-	articles = updated_news_api.get_news(news_api_key, refined_query)
-	
-	updated_news_api.display_news(articles)
+    data = request.get_json()
+    main_url = data.get("main_url", "")  # Extracts URL from JSON
 
-	summary = "CNN has highlighted prior safety concerns, reporting that in the three years leading up to the crash, pilots had reported near-misses with helicopters at Reagan National Airport. (cnn.com) Reuters provided detailed information on the investigation's progress, including the identification of the soldiers involved and preliminary data suggesting that the helicopter may have been flying above its designated altitude at the time of the collision. (reuters.com) CBS News has focused on the technical aspects of the investigation, reporting that both the plane's black boxes have been recovered and are being analyzed to determine the cause of the crash. (cbs.com)"
-	sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}, {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
-	summary_sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
-	main_source = {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}
-	media_diet = {}
+    print(f"Received URL: {main_url}")  # Debugging output	
 
-	return render_template("./testingbase.html", summary=summary, summary_sources=summary_sources, sources=sources, main_source=main_source, media_diet=media_diet)
+    # TASK 1: Venn news api call
+    print("TASK 1: NEWS API CALL")
+    title = "trump south africa"
+    articles = news_api.get_news(news_api_key, title)
+    processed_articles = news_api.process_articles(articles, "./media_bias.json")
+    print("processed articles (the sources and their meta info) is:")
+
+    if not processed_articles:
+        print("PROCESS ARTICLES IN EMPTY")
+
+    for i in processed_articles:
+        print(str(i))
+
+    # TASK 2: Venn AI Summary call
+    print("TASK 2: AI SUMMARY")
+    # insert code
+
+    # TASK 3: Sammy media bias and media diet call
+    print("TASK 3: MEDIA BIAS")
+    diet = get_diet(main_url)
+    print("diet is:")
+    for i in diet:
+        print(str(i))
+
+
+    return jsonify({"message": "URL received", "main_url": main_url})
+
+    # title = "Trump executive order to South Africa"
+    # refined_query = updated_news_api.extract_keywords(title)
+    # updated_news_api.refined_query(title)
+    # news_api_key = os.getenv("NEWS_API_KEY")
+    # articles = updated_news_api.get_news(news_api_key, refined_query)
+
+    # updated_news_api.display_news(articles)
+
+    # summary = "CNN has highlighted prior safety concerns, reporting that in the three years leading up to the crash, pilots had reported near-misses with helicopters at Reagan National Airport. (cnn.com) Reuters provided detailed information on the investigation's progress, including the identification of the soldiers involved and preliminary data suggesting that the helicopter may have been flying above its designated altitude at the time of the collision. (reuters.com) CBS News has focused on the technical aspects of the investigation, reporting that both the plane's black boxes have been recovered and are being analyzed to determine the cause of the crash. (cbs.com)"
+    # sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}, {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
+    # summary_sources = [{"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}]
+    # main_source = {"name": "CNN", "image_url": "URL", "article_url": "URL", "date":"2/7/2025", "factuality":"High", "bias":"Center Left", "credibility":"High"}
+    # media_diet = {}
+
+    # return render_template("./testingbase.html", summary=summary, summary_sources=summary_sources, sources=sources, main_source=main_source, media_diet=media_diet)
 
 @app.route("/")
 def home():
@@ -97,6 +196,150 @@ def cnn_loaded():
         "root_site": root_site,
         "message": "Page load detected successfully!"
     })
+
+#! Non-Route Helper Methods
+def calculate_rating(counts, weights):
+    """
+    Calculate a weighted rating for a given counts dictionary and weights dictionary.
+    Returns 0 if there are no recorded occurrences.
+    """
+    total_occurrences = sum(counts.values())  # Total number of occurrences
+    if total_occurrences == 0:
+        return 0
+
+    weighted_sum = sum(weights.get(category, 0) * count for category, count in counts.items())
+    
+    return weighted_sum / total_occurrences
+
+def write_all_counts_to_csv(bias_counts, factuality_counts, credibility_counts,
+                            bias_weights, factuality_weights, credibility_weights,
+                            filename='all_counts.csv'):
+    """
+    Appends a row to the CSV file containing the timestamp, scores, and counts for
+    bias, factuality, and credibility.
+    
+    The CSV header includes:
+      Timestamp, Bias Score, <bias categories...>,
+      Factuality Score, <factuality categories...>,
+      Credibility Score, <credibility categories...>
+    """
+    # Check if the file exists to decide whether to write a header.
+    file_exists = os.path.isfile(filename)
+    
+    # Create the header.
+    header = (['Timestamp', 'Bias Score'] + list(bias_counts.keys()) +
+              ['Factuality Score'] + list(factuality_counts.keys()) +
+              ['Credibility Score'] + list(credibility_counts.keys()))
+    
+    # Gather the current timestamp.
+    timestamp = datetime.datetime.now().isoformat()
+    
+    # Calculate the scores.
+    bias_score = calculate_rating(bias_counts, bias_weights)
+    factuality_score = calculate_rating(factuality_counts, factuality_weights)
+    credibility_score = calculate_rating(credibility_counts, credibility_weights)
+    
+    # Create the row: timestamp, bias score, bias counts, factuality score, factuality counts,
+    # credibility score, credibility counts.
+    row = ([timestamp, bias_score] + [bias_counts[k] for k in bias_counts] +
+           [factuality_score] + [factuality_counts[k] for k in factuality_counts] +
+           [credibility_score] + [credibility_counts[k] for k in credibility_counts])
+    
+    # Write to the CSV file.
+    with open(filename, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        if not file_exists:
+            writer.writerow(header)
+        writer.writerow(row)
+
+def convert_url(url):
+    """
+    Convert a URL starting with 'http://' or 'https://' to one that starts with 'www.'.
+    
+    Examples:
+      "http://example.com"        -> "www.example.com"
+      "https://example.com"       -> "www.example.com"
+      "http://www.example.com"    -> "www.example.com"
+      "https://www.example.com"   -> "www.example.com"
+    """
+    # The pattern matches:
+    #   ^https?://      -> the string must start with "http://" or "https://"
+    #   (?:www\.)?      -> an optional "www." (non-capturing group)
+    #   (.*)            -> capture the rest of the URL in group 1
+    pattern = r'^https?://(?:www\.)?(.*)'
+    # Replace the match with "www." followed by the captured group (the rest of the URL)
+    return re.sub(pattern, r'www.\1', url)
+
+def get_root_url(url):
+    """
+    Extracts the root domain from a given URL.
+    Example: https://www.nbcnews.com/politics/... -> https://www.nbcnews.com
+    """
+    match = re.match(r'^(https?://[^/]+)', url)
+    return match.group(1) if match else url 
+
+# Returns a tuple of 4 dictionaries: 
+#   1. Scores and their corresponding category 
+#   2. Cred Counts
+#   3. Fact Counts
+#   4. Bias Counts
+def get_diet(url): 
+    # Assuming the url is passed without a trailling forward slash and not cleaned - remove if not 
+    root_url = get_root_url(url)
+    root_url = convert_url(root_url)
+    root_url = root_url + "/"
+
+    # Opens media_bias.json for matching process
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(current_dir, 'backend/media_bias.json')  # Adjusted path
+
+    try:
+        with open(json_path, 'r') as file:
+            sources = json.load(file)
+    except Exception as e:
+        print("Error reading JSON:", e)
+        return jsonify({'error': f'Error reading JSON: {str(e)}'}), 500
+    
+    # Retrieves the corresponding source if url exists in media_bias.json
+    matching_source = next((source for source in sources if source.get('url') == root_url), None)
+
+    if matching_source: 
+        bias = matching_source.get('bias')
+        factual = matching_source.get('factual')
+        credibility = matching_source.get('credibility')
+
+        # Update bias counts 
+        if bias in bias_counts: 
+            bias_counts[bias] += 1
+        
+        # Update factuality counts
+        if factual in factuality_counts: 
+            factuality_counts[factual] += 1
+        
+        # Update credibility counts
+        if credibility in credibility_counts:
+            credibility_counts[credibility] += 1
+    else: 
+        print("Source not found")
+
+    # Now, compute the scores for each category and create a dictionary based off these 
+
+    bias_score, cred_score, fact_score = calculate_rating(bias_counts, bias_weights), calculate_rating(credibility_counts, credibility_weights), calculate_rating(factuality_counts, factuality_weights)
+
+    # Write to csv file for permanent storage 
+    write_all_counts_to_csv(bias_counts, factuality_counts, credibility_counts,
+                            bias_weights, factuality_weights, credibility_weights,
+                            filename='all_counts.csv')
+    
+    # Create dict of scores
+    score_dict = {"Bias Score": bias_score, "Credibility Score": cred_score, "Factuality Score": fact_score}
+
+    # Package all dicts to return in a tuple 
+    diet = (score_dict, factuality_counts, bias_counts, credibility_counts)
+
+    # print(diet)
+    return diet
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

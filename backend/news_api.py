@@ -1,11 +1,17 @@
 import requests
 import os
+import json
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
+# Load API key
 load_dotenv()
 API_KEY = os.getenv("NEWS_API_KEY")
 
 def get_news(api_key, query, language='en', page_size=20):
+    """
+    Fetch news articles from NewsAPI.
+    """
     url = "https://newsapi.org/v2/everything"
     params = {
         "q": query,
@@ -14,78 +20,60 @@ def get_news(api_key, query, language='en', page_size=20):
         "pageSize": page_size
     }
     response = requests.get(url, params=params)
-    
+
     if response.status_code == 200:
-        news_data = response.json()
-        return news_data["articles"]
+        return response.json().get("articles", [])
     else:
         print("Error fetching news:", response.json())
         return []
 
-def display_news(articles):
-    if not articles:
-        print("No articles found.")
-        return
-    
-    for i, article in enumerate(articles, start=1):
-        print(f"{i}. {article['title']}")
-        print(f"   Source: {article['source']['name']}")
-        print(f"   URL: {article['url']}")
-        print("-" * 60)
-
-def get_sources(articles):
+def process_articles(articles, new_sources_path):
     """
-    Extracts the sources from a list of news articles.
-
-    :param articles: List of dictionaries, each representing a news article.
-    :return: List of unique source names.
+    Processes a list of articles to extract metadata from new_sources.json.
     """
-    return list({article['source']['name'] for article in articles if article.get('source') and article['source'].get('name')})
+    with open(new_sources_path, "r") as f:
+        new_sources = json.load(f)
 
-def get_source_urls(articles):
-    """
-    Extracts the source URLs from a list of news articles.
+    source_metadata = {entry["url"].rstrip("/"): entry for entry in new_sources}
 
-    :param articles: List of dictionaries, each representing a news article.
-    :return: List of unique source URLs.
-    """
-    return list({article['url'] for article in articles if 'url' in article})
+    article_data = []
+    for article in articles:
+        parsed_url = urlparse(article["url"])
+        shortened_url = parsed_url.netloc
 
-def news_api(title, num_results=20):
-    load_dotenv()
-    API_KEY = os.getenv("NEWS_API_KEY") 
+        # Ensure "www." is present
+        if not shortened_url.startswith("www."):
+            shortened_url = "www." + shortened_url
 
-    if title is None:
-        title = "trump citizenship ban"
-    query = title
-    # query = input("Enter a topic to search news about: ")
-    articles = get_news(API_KEY, query, page_size=num_results)
+        # Ensure '/' at the end
+        shortened_url += "/"
 
-    sources = get_sources(articles)
+        metadata = source_metadata.get(shortened_url.rstrip("/"), {})
 
-    source_urls = get_source_urls(articles)
+        article_data.append({
+            "shortened_url": shortened_url,
+            "article_url": article["url"],
+            "date": article["publishedAt"].split("T")[0],  # Extract date only
+            "name": metadata.get("name", "Unknown"),
+            "bias": metadata.get("bias", "Unknown"),
+            "factuality": metadata.get("factual", "Unknown"),
+            "credibility": metadata.get("credibility", "Unknown")
+        })
 
-  
-    print(f"The type of articles is: \n{type(articles)}")
-    print(f"And here is what articles looks like: \n{articles}")
-
-    print("\n")
-
-    print(f"The type of articles[0] is \n{type(articles[0])}")
-    print(f"And here is what articles[0] looks like: \n{articles[0]}")
-
-    print("\n\n\n")
-    print(f"Here is the type of sources: \n{type(sources)}")
-    print(f"And here is what sources looks like: \n{sources}")
-
-    print("\n\n\n")
-    print(f"Here is the type of source_urls: \n{type(source_urls)}")
-    print(f"And here is what source_urls looks like: \n{source_urls}")
-
-    return source_urls
-
-
-    # display_news(articles)
+    return article_data
 
 if __name__ == "__main__":
-    news_api(title="trump citizenship ban")
+    title = "trump citizenship ban"
+
+    # Fetch news articles
+    articles = get_news(API_KEY, query=title, page_size=20)  # Fixed the parameter name
+
+    # Process the articles
+    new_sources_path = "./media_bias.json"
+    processed_articles = process_articles(articles, new_sources_path)
+
+    # Return only processed articles
+    # print(processed_articles)
+
+    for i in processed_articles:
+        print(str(i))
