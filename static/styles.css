@@ -1,6 +1,6 @@
 .resize-drag {
 	height: 500px;
-	width: 400px;
+	width: 550px;
 	border-radius: 4px;
 	background-color: #FFF6F8;
 	font-family: sans-serif;
@@ -42,6 +42,18 @@
 
 .w-40 {
 	width: 40%;
+}
+
+.w-30 {
+	width: 30%;
+}
+
+.w-20 {
+	width: 20%;
+}
+
+.w-70 {
+	width: 65%;
 }
 
 .w-65 {
