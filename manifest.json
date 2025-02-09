@@ -272,7 +272,7 @@
             "https://www.thenewstribune.com/*",
             "https://www.bellinghamherald.com/*",
             "https://www.tri-cityherald.com/*"],
-          "js": ["content.js", "static/scripts/panel.js", "static/scripts/bootstrap.bundle.min.js", "static/scripts/interact.min.js"],
+          "js": ["content.js", "static/scripts/panel.js", "static/scripts/bootstrap.bundle.min.js", "static/scripts/interact.min.js", "static/scripts/charts.js"],
           "css": ["static/styles.css", "static/bootstrap.min.css"]
       }
   ]
