@@ -127,14 +127,15 @@
               Your Media Diet
             </span>
             <div class="d-flex flex-row justify-content-center mt-4">
-              Bias Score: {{ media_diet["bias-score"] }}
+              Bias Score: {{ media_diet["score_dict"]["bias_score_avg"] }}
             </div>
-            <canvas id="biasChart" chartData='{{ media_diet["bias_data"] | tojson }}'></canvas>
+            <canvas id="biasChart" chartData=' media_diet["bias_count"] | tojson }}'></canvas>
             <div class="d-flex flex-row justify-content-center mt-4">
-              Factuality Score: {{ media_diet["factuality-score"] }}
+              Factuality Score: {{ media_diet["score_dict"]["factuality_score_avg"] }}
             </div>
+            <canvas id="factualityChart" chartData=' media_diet["bias_count"] | tojson }}'></canvas>
             <div class="d-flex flex-row justify-content-center mt-4">
-              Credibility Score: {{ media_diet["credibility-score"] }}
+              Credibility Score: {{ media_diet["score_dict"]["credibility_score_avg"] }}
             </div>
           </div>
         </div>
