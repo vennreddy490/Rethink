@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from backend import updated_news_api, debrief, news_api
+from backend import updated_news_api, debrief, news_api, keyword_extractor
 import os
 from flask_cors import CORS
 import re
@@ -88,7 +88,12 @@ def build_app():
 
     # TASK 1: News API Call
     print("TASK 1: NEWS API CALL")
-    title = "trump south africa"
+    # Keywords from the article act as the 
+    print("Grabbing keywords for title searching:")
+    keywords = keyword_extractor.extract_keywords(main_url)
+    # title = "trump south africa"
+    print(f"Searching keywords: {keywords}")
+    title = keywords
     articles = news_api.get_news(news_api_key, title)
     processed_articles = news_api.process_articles(articles, "./media_bias.json")
     print("Processed articles (sources and meta info):")
@@ -127,12 +132,6 @@ def build_app():
 
     # 6. Call the bulk analysis function.
     additional_info_report = debrief.analyze_articles(articles_for_analysis, "Main", compare_sources)
-
-    # Derive a summary string from the additional info.
-    if additional_info_report:
-        summary_str = " ".join([f"{source}: {info}" for source, info in additional_info_report.items()])
-    else:
-        summary_str = "No additional details found."
 
     # TASK 3: MEDIA BIAS and MEDIA DIET
     print("TASK 3: MEDIA BIAS")
@@ -193,15 +192,15 @@ def build_app():
         }
 
     # "summary" is derived from the AI summary results.
-    summary_final = summary_str
+    summary_final = additional_info_report
 
-    print("\n\n\n\n")
+    print("\n\n\n\n\n\n\n\n")
     print("===========================")
-    print(f"summary: {summary_final}")
-    print(f"summary_sources: {summary_sources}")
-    print(f"sources: {sources}")
-    print(f"main_source: {main_source_dict}")
-    print(f"media_diet: {media_diet}")
+    print(f"summary: {summary_final}\n")
+    print(f"summary_sources: {summary_sources}\n")
+    print(f"sources: {sources}\n")
+    print(f"main_source: {main_source_dict}\n")
+    print(f"media_diet: {media_diet}\n")
 
 
     return render_template("./testingbase.html",
