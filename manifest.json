@@ -142,9 +142,6 @@
     "https://www.thenewstribune.com/*",
     "https://www.bellinghamherald.com/*",
     "https://www.tri-cityherald.com/*"],
-  "background": {
-      "service_worker": "background.js"
-  },
   "content_scripts": [
       {
           "matches": [
