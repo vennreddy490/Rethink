@@ -73,6 +73,19 @@ if (!document.getElementById("myExtensionButton")) {
 
 
     // INSERT ALL THE JAVASCRIPT THAT YOU WANT TO RUN WHEN THE PAGE LOADS
+    // Example:
+    fetch("http://127.0.0.1:5000/", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server Response:", data);
+    })
+    .catch(error => console.error("Error contacting backend:", error));
+
 
     document.body.appendChild(button);
 }

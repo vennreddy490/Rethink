@@ -1,9 +1,13 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, jsonify
 from backend import updated_news_api, debrief
 import os
+from flask_cors import CORS
+import re
 from dotenv import load_dotenv
 
 app = Flask(__name__)
+CORS(app)  # Allows requests from the extension
+
 
 @app.route("/app", methods=["POST"])
 def build_app():
