@@ -1,21 +1,25 @@
 if (!document.getElementById("myExtensionButton")) {
+    let logo_img = document.createElement("img")
+    logo_img.style.height = "40px"
+    logo_img.style.width = "40px"
+    logo_img.src = chrome.runtime.getURL('/static/assets/RethinkLogo.png')
+
     let button = document.createElement("button");
     button.id = "myExtensionButton";
-    button.innerText = "Open YouTube";
+    button.appendChild(logo_img)
 
     // Ensure it's positioned on the screen
     button.style.position = "fixed";
-    button.style.top = "20px";
-    button.style.right = "20px";
+    button.style.top = "100px";
+    button.style.right = "10px";
     
     // Increase visibility
-    button.style.zIndex = "9998"; // Ensure it's above other elements
-    button.style.background = "red"; // Ensure it's visible
-    button.style.color = "white";
-    button.style.padding = "10px";
-    button.style.border = "2px solid white"; // Helps visibility
-    button.style.fontSize = "14px";
+    button.style.zIndex = "9998";
+    button.style.background = "rgba(142,29,29, 0.5)";
+    button.style.padding = "6px";
     button.style.cursor = "pointer";
+    button.style.borderWidth = "0px"
+    button.style.borderRadius = "5px"
 
     // Ensure it's actually visible
     button.style.visibility = "visible";
