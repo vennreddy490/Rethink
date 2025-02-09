@@ -5,7 +5,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"><link rel="stylesheet" href="static/styles.css">
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-<script src="static/scripts/panel.js" defer></script> 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <div style="height:0px; overflow-y:visible; position:absolute">
     <div class="resize-drag d-flex flex-column scroll-container" style="position:fixed; visibility: hidden" >
@@ -28,7 +27,7 @@
             <a class="tab-control" id="sources-tab" data-bs-toggle="tab" href="#sources" role="tab">Sources</a>
           </li>
           <li class="nav-item d-flex flex-grow-1 justify-content-center" role="presentation">
-            <a class="tab-control" id="focus-tab" data-bs-toggle="tab" href="#focus" role="tab">Focus</a>
+            <a class="tab-control" id="focus-tab" data-bs-toggle="tab" href="#focus" role="tab">Community</a>
           </li>
           <li class="nav-item d-flex flex-grow-1 justify-content-center" role="presentation">
             <a class="tab-control" id="media-diet-tab" data-bs-toggle="tab" href="#media-diet" role="tab">Media Diet</a>
@@ -57,10 +56,10 @@
               </div>
             </div>
             {% for source in summary_sources %}
-            <div class="d-flex flex-row align-items-center">
+            <div class="d-flex flex-row align-items-center my-1">
               <div class="w-40">
                 <image src="/static/assets/RethinkLogo.png" style="height:30px; width:30px;border-radius:40px"></image>
-                <span class="focus-text mx-1">{{ source["name"] }}</span>
+                <a class="focus-text mx-1" href='{{ source["url"] }}' style="color: black; text-decoration: none;">{{ source["name"] }}</a>
               </div>
               <div class="d-flex flex-row justify-content-center w-60">
                 <span class="mx-1 w-25">{{ source["date"] }}</span>
@@ -88,10 +87,10 @@
               </div>
             </div>
             {% for source in sources %}
-            <div class="d-flex flex-row align-items-center">
+            <div class="d-flex flex-row align-items-center mb-2">
               <div class="w-40">
                 <image src="/static/assets/RethinkLogo.png" style="height:30px; width:30px;border-radius:40px"></image>
-                <span class="focus-text mx-1">{{ source["name"] }}</span>
+                <a class="focus-text mx-1" href='{{ source["url"] }}' style="color: black; text-decoration: none;">{{ source["name"] }}</a>
               </div>
               <div class="d-flex flex-row justify-content-center w-60">
                 <span class="mx-1 w-25">{{ source["date"] }}</span>
@@ -104,13 +103,41 @@
           </div>
           <!-- Focus -->
           <div class="tab-pane" id="focus" role="tabpanel" aria-labelledby="focus-tab">
-              <h3>Contact Tab</h3>
-              <p>Content for the Contact tab.</p>
+            <span class="d-flex justify-content-center my-2" style="font-weight: 600; text-decoration: underline;">
+              Community Notes (3)
+            </span>
+            <div class="text-area mb-2">
+              Note that this publication is owned in part by the Saudi Arabian government and therefore is unreliable for reporting in the Middle East.
+              <a href="https://google.com">Source</a>
+            </div>
+            
+            <div class="text-area mb-2">
+              This article misquotes the original scientific article. The authors are much more reserved in their conclusion than this article would suggest.
+              <a href="https://google.com">Source</a>
+            </div>
+            <div class="text-area mb-2">
+              The person responsible for this murder has since been apprehended.
+              <a href="https://google.com">Source</a>
+            </div>
+            <div class="d-flex flex-row justify-content-center mt-4">
+              <button class="btn" style="background-color:#8E1D1D; color:white; max-width: 200px; font-size: 14px">Add Note</button>
+            </div>
           </div>
           <!-- Media Diet -->
-          <div class="tab-pane" id="focus" role="tabpanel" aria-labelledby="media-diet-tab">
-            <h3>Media Diet Tab</h3>
-            <p>Content for the Contact tab.</p>
+          <div class="tab-pane" id="media-diet" role="tabpanel" aria-labelledby="media-diet-tab">
+            <span class="d-flex justify-content-center my-2" style="font-weight: 600; text-decoration: underline;">
+              Your Media Diet
+            </span>
+            <div class="d-flex flex-row justify-content-center mt-4">
+              Bias Score: {{ media_diet["bias-score"] }}
+            </div>
+            <div class="d-flex flex-row justify-content-center mt-4">
+              Factuality Score: {{ media_diet["factuality-score"] }}
+            </div>
+            <div class="d-flex flex-row justify-content-center mt-4">
+              Credibility Score: {{ media_diet["credibility-score"] }}
+            </div>
+          </div>
         </div>
       </div>
       </div>
