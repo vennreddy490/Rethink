@@ -7,6 +7,7 @@ import csv
 import atexit
 import datetime
 import json
+import pandas as pd
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -104,10 +105,10 @@ def build_app():
 
     # TASK 3: Sammy media bias and media diet call
     print("TASK 3: MEDIA BIAS")
-    diet = get_diet(main_url)
-    print("diet is:")
-    for i in diet:
-        print(str(i))
+    diet_tuples = get_diet(main_url)
+    # print("diet is:")
+    # for i in diet:
+    #     print(str(i))
 
 
     return jsonify({"message": "URL received", "main_url": main_url})
@@ -284,14 +285,16 @@ def get_root_url(url):
 #   3. Fact Counts
 #   4. Bias Counts
 def get_diet(url): 
-    # Assuming the url is passed without a trailling forward slash and not cleaned - remove if not 
+    global bias_counts, factuality_counts, credibility_counts  # Explicitly declare global variables
+
+    # Clean and extract root URL
     root_url = get_root_url(url)
     root_url = convert_url(root_url)
     root_url = root_url + "/"
 
-    # Opens media_bias.json for matching process
+    # Load media_bias.json for matching process
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(current_dir, 'backend/media_bias.json')  # Adjusted path
+    json_path = os.path.join(current_dir, 'backend/media_bias.json')
 
     try:
         with open(json_path, 'r') as file:
@@ -300,7 +303,7 @@ def get_diet(url):
         print("Error reading JSON:", e)
         return jsonify({'error': f'Error reading JSON: {str(e)}'}), 500
     
-    # Retrieves the corresponding source if url exists in media_bias.json
+    # Retrieve the corresponding source if URL exists in media_bias.json
     matching_source = next((source for source in sources if source.get('url') == root_url), None)
 
     if matching_source: 
@@ -322,24 +325,43 @@ def get_diet(url):
     else: 
         print("Source not found")
 
-    # Now, compute the scores for each category and create a dictionary based off these 
-
-    bias_score, cred_score, fact_score = calculate_rating(bias_counts, bias_weights), calculate_rating(credibility_counts, credibility_weights), calculate_rating(factuality_counts, factuality_weights)
-
-    # Write to csv file for permanent storage 
+    # Write updated counts to CSV
     write_all_counts_to_csv(bias_counts, factuality_counts, credibility_counts,
                             bias_weights, factuality_weights, credibility_weights,
                             filename='all_counts.csv')
     
-    # Create dict of scores
-    score_dict = {"Bias Score": bias_score, "Credibility Score": cred_score, "Factuality Score": fact_score}
+    # Load the updated CSV file for calculations
+    df = pd.read_csv("./all_counts.csv")
 
-    # Package all dicts to return in a tuple 
-    diet = (score_dict, factuality_counts, bias_counts, credibility_counts)
+    # Extract relevant columns
+    bias_columns = list(bias_weights.keys())
+    factuality_columns = list(factuality_weights.keys())
+    credibility_columns = list(credibility_weights.keys())
 
-    # print(diet)
-    return diet
+    # Compute counts
+    bias_counts = df[bias_columns].sum().to_dict()
+    factuality_counts = df[factuality_columns].sum().to_dict()
+    credibility_counts = df[credibility_columns].sum().to_dict()    
 
+    # Compute weighted scores
+    bias_score = sum(df[col].sum() * weight for col, weight in bias_weights.items()) / df.shape[0]
+    credibility_score = sum(df[col].sum() * weight for col, weight in credibility_weights.items()) / df.shape[0]
+    factuality_score = sum(df[col].sum() * weight for col, weight in factuality_weights.items()) / df.shape[0]
+
+    # Store in a dictionary
+    score_dict = {
+        "Bias Score": bias_score,
+        "Credibility Score": credibility_score,
+        "Factuality Score": factuality_score
+    }
+
+    # Output results
+    print("Bias Counts:", bias_counts)
+    print("Factuality Counts:", factuality_counts)
+    print("Credibility Counts:", credibility_counts)
+    print("Score Dictionary:", score_dict)
+
+    return bias_counts, factuality_counts, credibility_counts, score_dict  
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
