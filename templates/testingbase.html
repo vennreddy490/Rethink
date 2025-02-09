@@ -127,27 +127,43 @@
               Your Media Diet
             </span>
             <div class="d-flex flex-row justify-content-center mt-4" style="font-weight: 600">
-              Bias Score: {{ media_diet["score_dict"]["Bias Score"] }}
+              Bias Score: {{ media_diet["score_dict"]["Bias Score"]|round(2) }}
             </div>
+            {% set ns = namespace(total=0) %}
+            {% for key, value in media_diet["bias_counts"].items() %}
+              {% set ns.total = ns.total + value %}
+            {% endfor %}
             {% for key, value in media_diet["bias_counts"].items() %}
             <div class="d-flex flex-row justify-content-center mt-1">
-             {{key}}: {{value}}
+             {{key}}: {{ (100 * value / ns.total) | round(2)}}%
             </div>
             {% endfor %}
+
             <div class="d-flex flex-row justify-content-center mt-4" style="font-weight: 600">
-              Factuality Score: {{ media_diet["score_dict"]["Factuality Score"] }}
+              Factuality Score: {{ media_diet["score_dict"]["Factuality Score"]|round(2) }}
             </div>
+
+            {% set ns2 = namespace(total=0) %}
+            {% for key, value in media_diet["factuality_counts"].items() %}
+              {% set ns2.total = ns.total + value %}
+            {% endfor %}
             {% for key, value in media_diet["factuality_counts"].items() %}
             <div class="d-flex flex-row justify-content-center mt-1">
-             {{key}}: {{value}}
+              {{key}}: {{ (100 * value / ns2.total) | round(2)}}%
             </div>
             {% endfor %}
+
             <div class="d-flex flex-row justify-content-center mt-4" style="font-weight: 600">
-              Credibility Score: {{ media_diet["score_dict"]["Credibility Score"] }}
+              Credibility Score: {{ media_diet["score_dict"]["Credibility Score"]|round(2) }}
             </div>
+
+            {% set ns3 = namespace(total=0) %}
+            {% for key, value in media_diet["credibility_counts"].items() %}
+              {% set ns3.total = ns.total + value %}
+            {% endfor %}
             {% for key, value in media_diet["credibility_counts"].items() %}
             <div class="d-flex flex-row justify-content-center mt-1">
-             {{key}}: {{value}}
+              {{key}}: {{ (100 * value / ns3.total) | round(2)}}%
             </div>
             {% endfor %}
           </div>
