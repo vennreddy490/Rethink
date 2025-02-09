@@ -1,31 +1,31 @@
 {
-    "name": "Rethink",
-    "description": "Fact-driven news aggregation: All the essential details in one place, free from the bias and clutter.",
-    "version": "1.0",
     "manifest_version": 3,
+    "name": "Rethink",
+    "version": "1.0",
+    "description": "Fact-driven news aggregation: All the essential details in one place, free from the bias and clutter.",
     "action": {
-        "default_popup": "hello.html"
+      "default_popup": "hello.html"
     },
     "permissions": [
-        "tabs"
+      "tabs", "scripting", "webNavigation"
     ],
-    "host_permissions" [ 
-        "http://localhost:5000/*"
+    "host_permissions": [
+      "http://localhost:5000/*",
+      "<all_urls>"
     ],
     "icons": {
-        "48": "./resources/RethinkLogo.png"
+      "48": "./resources/RethinkLogo.png"
     },
-
     "background": {
-        "service_worker": "background.js"
+      "service_worker": "background.js"
     },
     "content_scripts": [
-        {
-          "js": ["content.js"],
-          
-          "matches": [
-            "https://www.cnn.com/*"
-          ]
-        }
+      {
+        "matches": [
+          "https://www.cnn.com/*"
+        ],
+        "js": ["content.js"]
+      }
     ]
-}
+  }
+  
